@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosServices = axios.create({
-  baseURL: 'http://localhost:8080/',
+  baseURL: 'https://weary-woolens-lamb.cyclic.app/',
   withCredentials: true
   // headers: {
   //   Authorization: `${serviceToken}` // Include authorization header with the token
