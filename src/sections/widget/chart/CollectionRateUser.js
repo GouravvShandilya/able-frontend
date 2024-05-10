@@ -63,7 +63,7 @@ const CollectionRateUser = () => {
 
   async function monthlyData() {
     try {
-      const monthlyData = await axios.get('/collection/getCollectionData');
+      const monthlyData = await axios.get('/collection/getLast30DaysCollectionData');
       setMonthlyCollection({
         date: monthlyData.data.date,
         total: monthlyData.data.total
@@ -73,7 +73,7 @@ const CollectionRateUser = () => {
     }
   }
 
-  console.log(newWeeklyCollection);
+
   useEffect(() => {
     monthlyData();
     weeklyData();

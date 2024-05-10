@@ -3,20 +3,18 @@ import { useEffect, useState } from 'react';
 // material-ui
 import { ListItemButton, Menu, Stack, Typography } from '@mui/material';
 
-// project-imports
-// import RepeatCustomerChart from './RepeatCustomerChart';
-import MonthlyCollectionChart from './MonthlyCollectionChart';
-import WeeklyCollectionChart from './WeeklyCollectionChart';
 import MainCard from 'components/MainCard';
 import IconButton from 'components/@extended/IconButton';
 import axios from '../../../utils/axios';
 
 // assets
 import { More } from 'iconsax-react';
+import MonthlyCollectionChartUser from './MonthlyCollectionChartUser';
+import WeeklyCollectionChartUser from './WeeklyCollectionChartUser';
 
 // ==============================|| CHART - REPEAT CUSTOMER RATE ||============================== //
 
-const RepeatCustomerRate = () => {
+const CollectionRateCustomer = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [weeklyStatus, setWeeklyStatus] = useState(false);
   const [MonthlyStatus, setMonthlyStatus] = useState(true);
@@ -52,7 +50,7 @@ const RepeatCustomerRate = () => {
 
   async function weeklyData() {
     try {
-      const weeklyData = await axios.get('/collection/weeklyEachDayCollectionTotal');
+      const weeklyData = await axios.get('/collection/getCustomerWeeklyArray');
 
       setWeeklyCollection({
         date: weeklyData.data.date,
@@ -65,16 +63,16 @@ const RepeatCustomerRate = () => {
 
   async function monthlyData() {
     try {
-      const monthlyData = await axios.get('/collection/monthlyEachDayCollectionTotal');
-
+      const monthlyData = await axios.get('/collection//getCustomerMonthlyArray');
       setMonthlyCollection({
         date: monthlyData.data.date,
         total: monthlyData.data.total
       });
     } catch (error) {
-      console.error('Error fetching weekly data:', error);
+      console.error('Error fetching Monthly data:', error);
     }
   }
+
 
   useEffect(() => {
     monthlyData();
@@ -119,12 +117,12 @@ const RepeatCustomerRate = () => {
       </Stack>
 
       {MonthlyStatus ? (
-        <MonthlyCollectionChart monthlyData={newMonthlyCollection} />
+        <MonthlyCollectionChartUser monthlyData={newMonthlyCollection} />
       ) : (
-        <WeeklyCollectionChart weeklyData={newWeeklyCollection} />
+        <WeeklyCollectionChartUser weeklyData={newWeeklyCollection} />
       )}
     </MainCard>
   );
 };
 
-export default RepeatCustomerRate;
+export default CollectionRateCustomer;

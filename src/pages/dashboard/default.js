@@ -6,7 +6,6 @@ import { Grid } from '@mui/material';
 import EcommerceDataCard from 'components/cards/statistics/EcommerceDataCard';
 import EcommerceDataChart from 'sections/widget/chart/EcommerceDataChart';
 
-
 import ProjectOverview from 'sections/widget/chart/ProjectOverview';
 
 import Transactions from 'sections/widget/data/Transactions';
@@ -29,12 +28,16 @@ const DashboardDefault = () => {
   const [newTotalCollectionAmount, setTotalCollectionAmount] = useState('');
 
   async function gg() {
-    const gg = await axiosServices.get('/collection/getUserStatistics');
-    setTotalCollection(gg.data.todayCollections);
-    setTotalMonthlyCollection(gg.data.monthlyCollections);
-    setTotalweeklyCollection(gg.data.weeklyCollections);
-    setTotalInvoices(gg.data.userCollections);
-    setTotalCollectionAmount(gg.data.totalCollections);
+    const gg = await axiosServices.get('/collection/getmonthlyUserRevenueTotal');
+    const fd = await axiosServices.get('/collection/getWeeklyUserRevenueTotal');
+    const bf = await axiosServices.get('/collection/getdailyUserRevenueTotal');
+    const bgbg = await axiosServices.get('/collection/getDailyUserCollections');
+
+    setTotalCollection(bf.data.TotalDailyUserRevenue);
+    setTotalMonthlyCollection(gg.data.TotalMonthlyUserRevenue);
+    setTotalweeklyCollection(fd.data.TotalWeeklyUserRevenue);
+    setTotalInvoices(bgbg.data.totalCollections);
+    setTotalCollectionAmount(bgbg.data.totalAmount);
   }
 
   useEffect(() => {

@@ -6,9 +6,6 @@ import { Grid } from '@mui/material';
 import EcommerceDataCard from 'components/cards/statistics/EcommerceDataCard';
 import EcommerceDataChart from 'sections/widget/chart/EcommerceDataChart';
 
-import RepeatCustomerRate from 'sections/widget/chart/CollectionRate';
-
-
 import Transactions from 'sections/widget/data/Transactions';
 import TotalIncome from 'sections/widget/chart/TotalIncome';
 
@@ -16,6 +13,7 @@ import TotalIncome from 'sections/widget/chart/TotalIncome';
 import { Book, Calendar, Wallet3 } from 'iconsax-react';
 import axiosServices from 'utils/axios';
 import { useEffect, useState } from 'react';
+import CollectionRateCustomer from 'sections/widget/chart/CollectionRateCustomer';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
@@ -39,10 +37,16 @@ const DashboardDefault = () => {
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
       <Grid item xs={12} sm={6} lg={3}>
-        <EcommerceDataCard title="Total deposits" count={'Rs' + newTotalCollection} iconPrimary={<Wallet3 />}>
-          <EcommerceDataChart color={theme.palette.primary.main} />
+        <EcommerceDataCard
+          title="Monthly Deposits"
+          count={'Rs' + newTotalMonthlyCollection}
+          color="success"
+          iconPrimary={<Calendar color={theme.palette.success.darker} />}
+        >
+          <EcommerceDataChart color={theme.palette.success.darker} />
         </EcommerceDataCard>
       </Grid>
+
       <Grid item xs={12} sm={6} lg={3}>
         <EcommerceDataCard
           title="Weekly Deposits"
@@ -54,13 +58,8 @@ const DashboardDefault = () => {
         </EcommerceDataCard>
       </Grid>
       <Grid item xs={12} sm={6} lg={3}>
-        <EcommerceDataCard
-          title="Monthly Deposits"
-          count={'Rs' + newTotalMonthlyCollection}
-          color="success"
-          iconPrimary={<Calendar color={theme.palette.success.darker} />}
-        >
-          <EcommerceDataChart color={theme.palette.success.darker} />
+        <EcommerceDataCard title="Day deposits" count={'Rs' + newTotalCollection} iconPrimary={<Wallet3 />}>
+          <EcommerceDataChart color={theme.palette.primary.main} />
         </EcommerceDataCard>
       </Grid>
 
@@ -68,9 +67,8 @@ const DashboardDefault = () => {
       <Grid item xs={12} md={8} lg={9}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <RepeatCustomerRate />
+            <CollectionRateCustomer />
           </Grid>
-
         </Grid>
       </Grid>
 

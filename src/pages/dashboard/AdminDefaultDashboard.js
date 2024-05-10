@@ -26,15 +26,19 @@ const DashboardDefault = () => {
   const [newWeeklyCollection, setWeeklyCollection] = useState('');
   const [newMonthlyCollection, setMonthlyCollection] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-
+  const [newTotalDepositor, setTotalDepositor] = useState('');
+  const [newtotalCustomer, settotalCustomer] = useState('');
   async function getDayCollection() {
     try {
-      const dayResponse = await axios.get('/admin/dayCollectionTotal');
-      const weeklyResponse = await axios.get('/admin/weeklyCollectionTotal');
-      const monthlyResponse = await axios.get('/admin/monthlyRevenueTotal');
+      const dayResponse = await axios.get('/collection/dayCollectionTotal');
+      const weeklyResponse = await axios.get('/collection/weeklyCollectionTotal');
+      const monthlyResponse = await axios.get('/collection/monthlyRevenueTotal');
       setDayCollection(dayResponse.data.TotalDayCollection);
       setWeeklyCollection(weeklyResponse.data.TotalWeeklyCollection);
       setMonthlyCollection(monthlyResponse.data.TotalMonthlyRevenue);
+      setTotalDepositor(monthlyResponse.data.totalDepositor);
+      settotalCustomer(monthlyResponse.data.totalCustomer);
+
       setIsLoading(false); // Set loading state to false after data fetch
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -145,7 +149,12 @@ const DashboardDefault = () => {
         </EcommerceDataCard>
       </Grid>
       <Grid item xs={12} sm={6} lg={3}>
-        <EcommerceDataCard title="Total Depositor" count="200" color="error" iconPrimary={<CloudChange color={theme.palette.error.dark} />}>
+        <EcommerceDataCard
+          title="Total Depositor"
+          count={newTotalDepositor}
+          color="error"
+          iconPrimary={<CloudChange color={theme.palette.error.dark} />}
+        >
           <EcommerceDataChart color={theme.palette.error.dark} />
         </EcommerceDataCard>
       </Grid>
@@ -161,11 +170,16 @@ const DashboardDefault = () => {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item xs={12} md={4} lg={3}>
-        <Stack spacing={3}>
-          <ProjectRelease />
-          <AssignUsers />
-        </Stack>
+
+      <Grid item xs={12} md={6} lg={3}>
+        <EcommerceDataCard
+          title="Total Customer"
+          count={newtotalCustomer}
+          color="success"
+          iconPrimary={<CloudChange color={theme.palette.success.dark} />}
+        >
+          <EcommerceDataChart color={theme.palette.success.dark} />
+        </EcommerceDataCard>
       </Grid>
 
       {/* row 3 */}
