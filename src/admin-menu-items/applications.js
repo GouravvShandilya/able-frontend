@@ -43,6 +43,12 @@ const applications = {
           title: <FormattedMessage id="Collections List" />,
           type: 'item',
           url: '/apps/invoice/list'
+        },
+        {
+          id: 'Edit Requests',
+          title: <FormattedMessage id="Edit Requests" />,
+          type: 'item',
+          url: '/apps/invoice/EditReqList'
         }
       ]
     },

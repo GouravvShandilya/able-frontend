@@ -30,6 +30,8 @@ const CustomerListUser = Loadable(lazy(() => import('pages/apps/customer/Custome
 const AppInvoiceCreate = Loadable(lazy(() => import('pages/apps/invoice/createUserInvoice')));
 const AppInvoiceDashboard = Loadable(lazy(() => import('pages/apps/invoice/dashboard')));
 const AppInvoiceList = Loadable(lazy(() => import('pages/apps/invoice/listUser')));
+const EditRequestUser = Loadable(lazy(() => import('pages/apps/invoice/EditRequestUser')));
+
 const AppInvoiceDetails = Loadable(lazy(() => import('pages/apps/invoice/detailsUser')));
 const AppInvoiceEdit = Loadable(lazy(() => import('pages/apps/invoice/editUser')));
 
@@ -221,6 +223,10 @@ const UserMainRoutes = {
                 {
                   path: 'list',
                   element: <AppInvoiceList />
+                },
+                {
+                  path: 'Editreqlist',
+                  element: <EditRequestUser />
                 }
               ]
             },

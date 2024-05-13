@@ -3,88 +3,43 @@ import { useNavigate, useParams } from 'react-router';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Divider,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  FormHelperText,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Autocomplete, Box, Button, FormControl, Grid, InputLabel, FormHelperText, Stack, TextField, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 // third-party
-import { v4 as UIDV4 } from 'uuid';
-import { format } from 'date-fns';
-import { FieldArray, Form, Formik } from 'formik';
+
+import { Form, Formik } from 'formik';
 import * as yup from 'yup';
 
 // project-imports
 import Loader from 'components/Loader';
 import MainCard from 'components/MainCard';
-import InvoiceItem from 'sections/apps/invoice/InvoiceItem';
+// import InvoiceItem from 'sections/apps/invoice/InvoiceItem';
 import InvoiceModal from 'sections/apps/invoice/InvoiceModal';
 import AddressModal from 'sections/apps/invoice/AddressModal';
 
-import { reviewInvoicePopup, customerPopup, selectCountry, getInvoiceSingleList, getInvoiceUpdate } from 'store/reducers/invoiceUser';
+import { reviewInvoicePopup, customerPopup, selectCountry } from 'store/reducers/invoice';
 import { dispatch, useSelector } from 'store';
 import { openSnackbar } from 'store/reducers/snackbar';
 
 // assets
-import { Add } from 'iconsax-react';
+
+import { getCollectionSingleList, getCollectionUpdate } from 'store/reducers/collection';
+import axiosServices from 'utils/axios';
 
 const validationSchema = yup.object({
-  date: yup.date().required('Invoice date is required'),
-  due_date: yup
-    .date()
-    .when('date', (date, schema) => date && schema.min(date, "Due date can't be before invoice date"))
-    .nullable()
-    .required('Due date is required'),
-  customerInfo: yup
-    .object({
-      name: yup.string().required('Invoice receiver information is required')
-    })
-    .required('Invoice receiver information is required'),
-  status: yup.string().required('Status selection is required'),
-  discount: yup
+  amount: yup
     .number()
-    .typeError('Discount must specify a numeric value.')
+    .typeError('amount must specify a numeric value.')
     // @ts-ignore
-    .test('rate', 'Please enter a valid discount value', (number) => /^\d+(\.\d{1,2})?$/.test(number)),
-  tax: yup
-    .number()
-    .typeError('Tax must specify a numeric value.')
-    // @ts-ignore
-    .test('rate', 'Please enter a valid tax value', (number) => /^\d+(\.\d{1,2})?$/.test(number)),
-  invoice_detail: yup
-    .array()
-    .required('Invoice details is required')
-    .of(
-      yup.object().shape({
-        name: yup.string().required('Product name is required')
-      })
-    )
-    .min(1, 'Invoice must have at least 1 items')
+    .test('rate', 'Please enter a valid amount value', (number) => /^\d+(\.\d{1,2})?$/.test(number))
 });
 
 // ==============================|| INVOICE - EDIT ||============================== //
 
-const CreateUser = () => {
-  const theme = useTheme();
+const EditUser = () => {
+  useTheme();
   const { id } = useParams();
   const navigation = useNavigate();
 
@@ -92,7 +47,7 @@ const CreateUser = () => {
   const { isCustomerOpen, countries, country, isOpen, list } = useSelector((state) => state.invoice);
 
   useEffect(() => {
-    dispatch(getInvoiceSingleList(Number(id))).then(() => setLoading(false));
+    dispatch(getCollectionSingleList(Number(id))).then(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -103,14 +58,9 @@ const CreateUser = () => {
     email: ''
   };
 
-  const notesLimit = 500;
-
-  const handlerEdit = (values) => {
+  const handlerEdit = async (values) => {
     const NewList = {
       invoice_id: values.invoice_id,
-      status: values.status,
-      date: format(new Date(values.date), 'MM/dd/yyyy'),
-      dueDate: format(new Date(values.due_date), 'MM/dd/yyyy'),
       cashierInfo: {
         name: values.cashierInfo?.name,
         address: values.cashierInfo?.address,
@@ -123,55 +73,42 @@ const CreateUser = () => {
         phone: values.customerInfo?.phone,
         email: values.customerInfo?.email
       },
-      invoice_detail: values.invoice_detail.map((item) => ({
-        name: item.name,
-        description: item.description,
-        qty: item.qty,
-        price: item.price
-      })),
-      discount: values.discount,
-      tax: values.tax,
-      grandTotal: values.grandTotal,
-      notes: values.notes
+      oldAmount: values.oldAmount,
+      newAmount: values?.amount
     };
 
-    // const NewList  = {
-    //   id: Number(list?.id),
-    //   invoice_id: Number(values.invoice_id),
-    //   customer_name: values.cashierInfo?.name,
-    //   email: values.cashierInfo?.email,
-    //   avatar: Number(list?.avatar),
-    //   discount: Number(values.discount),
-    //   tax: Number(values.tax),
-    //   date: format(new Date(values.date), 'MM/dd/yyyy'),
-    //   due_date: format(new Date(values.due_date), 'MM/dd/yyyy'),
-    //   quantity: Number(
-    //     values.invoice_detail?.reduce((sum, i) => {
-    //       return sum + i.qty;
-    //     }, 0)
-    //   ),
-    //   status: values.status,
-    //   cashierInfo: values.cashierInfo,
-    //   customerInfo: values.customerInfo,
-    //   invoice_detail: values.invoice_detail,
-    //   notes: values.notes
-    // };
-
-    dispatch(getInvoiceUpdate(NewList)).then(() => {
+    try {
+      const gg = await axiosServices.post('/editRequest/createEditRequest', NewList);
+      console.log(gg);
+      dispatch(getCollectionUpdate(NewList)).then(() => {
+        dispatch(
+          openSnackbar({
+            open: true,
+            message: 'Invoice Updated successfully',
+            anchorOrigin: { vertical: 'top', horizontal: 'right' },
+            variant: 'alert',
+            alert: {
+              color: 'success'
+            },
+            close: true
+          })
+        );
+        navigation('/user/apps/invoice/Editreqlist');
+      });
+    } catch (error) {
       dispatch(
         openSnackbar({
           open: true,
-          message: 'Invoice Updated successfully',
+          message: error.response.data.message,
           anchorOrigin: { vertical: 'top', horizontal: 'right' },
           variant: 'alert',
           alert: {
-            color: 'success'
+            color: 'error'
           },
           close: true
         })
       );
-      navigation('/user/apps/invoice/list');
-    });
+    }
   };
 
   const addNextInvoiceHandler = () => {
@@ -189,33 +126,19 @@ const CreateUser = () => {
       <Formik
         enableReinitialize={true}
         initialValues={{
-          id: list?.id || '',
-          invoice_id: list?.invoice_id || '',
-          status: list?.status || '',
           date: new Date(list?.date) || null,
-          due_date: new Date(list?.dueDate) || null,
+          invoice_id: list?.invoice_id || '',
           cashierInfo: list?.cashierInfo || invoiceSingleList,
           customerInfo: list?.customerInfo || invoiceSingleList,
-          invoice_detail: list?.invoice_detail || [],
-          discount: list?.discount || 0,
-          tax: list?.tax || 0,
-          notes: list?.notes || ''
+          amount: list?.amount || 0,
+          oldAmount: list?.amount || 0
         }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
           handlerEdit(values);
         }}
       >
-        {({ handleBlur, errors, handleChange, handleSubmit, values, isValid, setFieldValue, touched }) => {
-          const subtotal =
-            values?.invoice_detail?.reduce((prev, curr) => {
-              if (curr.name.trim().length > 0) return prev + Number(curr.price * Math.floor(curr.qty));
-              else return prev;
-            }, 0) || 0;
-          const taxRate = (values?.tax * subtotal) / 100;
-          const discountRate = (values.discount * subtotal) / 100;
-          const total = subtotal - discountRate + taxRate;
-
+        {({ errors, handleChange, handleSubmit, values, isValid, setFieldValue, touched }) => {
           return (
             <Form onSubmit={handleSubmit}>
               <Grid container spacing={2}>
@@ -235,60 +158,24 @@ const CreateUser = () => {
                     </FormControl>
                   </Stack>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Stack spacing={1}>
-                    <InputLabel>Status</InputLabel>
-                    <FormControl sx={{ width: '100%' }}>
-                      <Select
-                        value={values.status}
-                        displayEmpty
-                        name="status"
-                        renderValue={(selected) => {
-                          if (selected.length === 0) {
-                            return <Box sx={{ color: 'secondary.400' }}>Select status</Box>;
-                          }
-                          return selected;
-                        }}
-                        onChange={handleChange}
-                        error={Boolean(errors.status && touched.status)}
-                      >
-                        <MenuItem disabled value="">
-                          Select status
-                        </MenuItem>
-                        <MenuItem value="Paid">Paid</MenuItem>
-                        <MenuItem value="Unpaid">Unpaid</MenuItem>
-                        <MenuItem value="Cancelled">Cancelled</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Stack>
-                  {touched.status && errors.status && <FormHelperText error={true}>{errors.status}</FormHelperText>}
-                </Grid>
+
                 <Grid item xs={12} sm={6} md={3}>
                   <Stack spacing={1}>
                     <InputLabel>Date</InputLabel>
                     <FormControl sx={{ width: '100%' }} error={Boolean(touched.date && errors.date)}>
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DatePicker format="dd/MM/yyyy" value={values.date} onChange={(newValue) => setFieldValue('date', newValue)} />
+                        <DatePicker
+                          disabled
+                          format="dd/MM/yyyy"
+                          value={values.date}
+                          onChange={(newValue) => setFieldValue('date', newValue)}
+                        />
                       </LocalizationProvider>
                     </FormControl>
                   </Stack>
                   {touched.date && errors.date && <FormHelperText error={true}>{errors.date}</FormHelperText>}
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Stack spacing={1}>
-                    <InputLabel>Due Date</InputLabel>
-                    <FormControl sx={{ width: '100%' }} error={Boolean(touched.due_date && errors.due_date)}>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DatePicker
-                          format="dd/MM/yyyy"
-                          value={values.due_date}
-                          onChange={(newValue) => setFieldValue('due_date', newValue)}
-                        />
-                      </LocalizationProvider>
-                    </FormControl>
-                  </Stack>
-                  {touched.due_date && errors.due_date && <FormHelperText error={true}>{errors.due_date}</FormHelperText>}
-                </Grid>
+                <Grid item xs={12} sm={6} md={3}></Grid>
 
                 <Grid item xs={12} sm={6}>
                   <MainCard sx={{ minHeight: 168 }}>
@@ -324,21 +211,6 @@ const CreateUser = () => {
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <Box textAlign="right" color="secondary.200">
-                          <Button
-                            size="small"
-                            startIcon={<Add />}
-                            color="secondary"
-                            variant="outlined"
-                            onClick={() =>
-                              dispatch(
-                                customerPopup({
-                                  isCustomerOpen: true
-                                })
-                              )
-                            }
-                          >
-                            Change
-                          </Button>
                           <AddressModal
                             open={isCustomerOpen}
                             setOpen={(value) =>
@@ -360,167 +232,54 @@ const CreateUser = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Typography variant="h5">Detail</Typography>
+                  <Grid container justifyContent="space-between">
+                    <Grid item xs={12} md={8}></Grid>
+                    <Grid item xs={12} md={4}>
+                      <Grid container justifyContent="space-between" spacing={2} sx={{ pt: 2.5, pb: 2.5 }}>
+                        <Grid item xs={6}>
+                          <Stack spacing={1}>
+                            <InputLabel>Old Amount</InputLabel>
+                            <TextField
+                              disabled
+                              type="number"
+                              style={{ width: '100%' }}
+                              name="oldAmount"
+                              id="oldAmount"
+                              placeholder="00"
+                              value={values.oldAmount}
+                              onChange={handleChange}
+                            />
+                            {touched.oldAmount && errors.oldAmount && <FormHelperText error={true}>{errors.oldAmount}</FormHelperText>}
+                          </Stack>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Stack spacing={1}>
+                            <InputLabel>New Amount</InputLabel>
+                            <TextField
+                              type="number"
+                              style={{ width: '100%' }}
+                              name="amount"
+                              id="amount"
+                              placeholder="00"
+                              value={values.amount}
+                              onChange={handleChange}
+                            />
+                            {touched.amount && errors.amount && <FormHelperText error={true}>{errors.amount}</FormHelperText>}
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Stack spacing={2}>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="subtitle1">Grand Total:</Typography>
+                            <Typography variant="subtitle1">{values?.amount}</Typography>
+                          </Stack>
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  <FieldArray
-                    name="invoice_detail"
-                    render={({ remove, push }) => {
-                      return (
-                        <>
-                          <TableContainer>
-                            <Table sx={{ minWidth: 650 }}>
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell>#</TableCell>
-                                  <TableCell>Name</TableCell>
-                                  <TableCell>Description</TableCell>
-                                  <TableCell>Qty</TableCell>
-                                  <TableCell>Price</TableCell>
-                                  <TableCell align="right">Amount</TableCell>
-                                  <TableCell align="right">Action</TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {values?.invoice_detail?.map((item, index) => (
-                                  <TableRow key={item.id}>
-                                    <TableCell>{values?.invoice_detail.indexOf(item) + 1}</TableCell>
-                                    <InvoiceItem
-                                      key={item.id}
-                                      id={item.id}
-                                      index={index}
-                                      name={item.name}
-                                      description={item.description}
-                                      qty={item.qty}
-                                      price={item.price}
-                                      onDeleteItem={(index) => remove(index)}
-                                      onEditItem={handleChange}
-                                      Blur={handleBlur}
-                                      errors={errors}
-                                      touched={touched}
-                                    />
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                          <Divider />
-                          {touched.invoice_detail && errors.invoice_detail && !Array.isArray(errors?.invoice_detail) && (
-                            <Stack direction="row" justifyContent="center" sx={{ p: 1.5 }}>
-                              <FormHelperText error={true}>{errors.invoice_detail}</FormHelperText>
-                            </Stack>
-                          )}
-                          <Grid container justifyContent="space-between">
-                            <Grid item xs={12} md={8}>
-                              <Box sx={{ pt: 2.5, pr: 2.5, pb: 2.5, pl: 0 }}>
-                                <Button
-                                  color="primary"
-                                  startIcon={<Add />}
-                                  onClick={() =>
-                                    push({
-                                      id: UIDV4(),
-                                      name: '',
-                                      description: '',
-                                      qty: 1,
-                                      price: '1.00'
-                                    })
-                                  }
-                                  variant="dashed"
-                                  sx={{ bgcolor: 'transparent !important' }}
-                                >
-                                  Add Item
-                                </Button>
-                              </Box>
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                              <Grid container justifyContent="space-between" spacing={2} sx={{ pt: 2.5, pb: 2.5 }}>
-                                <Grid item xs={6}>
-                                  <Stack spacing={1}>
-                                    <InputLabel>Discount(%)</InputLabel>
-                                    <TextField
-                                      type="number"
-                                      style={{ width: '100%' }}
-                                      name="discount"
-                                      id="discount"
-                                      placeholder="0.0"
-                                      value={values.discount}
-                                      onChange={handleChange}
-                                    />
-                                    {touched.discount && errors.discount && <FormHelperText error={true}>{errors.discount}</FormHelperText>}
-                                  </Stack>
-                                </Grid>
-                                <Grid item xs={6}>
-                                  <Stack spacing={1}>
-                                    <InputLabel>Tax(%)</InputLabel>
-                                    <TextField
-                                      type="number"
-                                      style={{ width: '100%' }}
-                                      name="tax"
-                                      id="tax"
-                                      placeholder="0.0"
-                                      value={values.tax}
-                                      onChange={handleChange}
-                                    />
-                                    {touched.tax && errors.tax && <FormHelperText error={true}>{errors.tax}</FormHelperText>}
-                                  </Stack>
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12}>
-                                <Stack spacing={2}>
-                                  <Stack direction="row" justifyContent="space-between">
-                                    <Typography color={theme.palette.secondary.main}>Sub Total:</Typography>
-                                    <Typography>{country?.prefix + '' + subtotal.toFixed(2)}</Typography>
-                                  </Stack>
-                                  <Stack direction="row" justifyContent="space-between">
-                                    <Typography color={theme.palette.secondary.main}>Discount:</Typography>
-                                    <Typography variant="h6" color={theme.palette.success.main}>
-                                      {country?.prefix + '' + discountRate.toFixed(2)}
-                                    </Typography>
-                                  </Stack>
-                                  <Stack direction="row" justifyContent="space-between">
-                                    <Typography color={theme.palette.secondary.main}>Tax:</Typography>
-                                    <Typography>{country?.prefix + '' + taxRate.toFixed(2)}</Typography>
-                                  </Stack>
-                                  <Stack direction="row" justifyContent="space-between">
-                                    <Typography variant="subtitle1">Grand Total:</Typography>
-                                    <Typography variant="subtitle1">
-                                      {total % 1 === 0 ? country?.prefix + '' + total : country?.prefix + '' + total.toFixed(2)}
-                                    </Typography>
-                                  </Stack>
-                                </Stack>
-                              </Grid>
-                            </Grid>
-                          </Grid>
-                        </>
-                      );
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Stack spacing={1}>
-                    <InputLabel>Notes</InputLabel>
-                    <TextField
-                      placeholder="Address"
-                      rows={3}
-                      value={values.notes}
-                      multiline
-                      name="notes"
-                      onChange={handleChange}
-                      inputProps={{
-                        maxLength: notesLimit
-                      }}
-                      helperText={`${values.notes.length} / ${notesLimit}`}
-                      sx={{
-                        width: '100%',
-                        '& .MuiFormHelperText-root': {
-                          mr: 0,
-                          display: 'flex',
-                          justifyContent: 'flex-end'
-                        }
-                      }}
-                    />
-                  </Stack>
-                </Grid>
+                <Grid item xs={12}></Grid>
                 <Grid item xs={12} sm={6}>
                   <Stack spacing={1}>
                     <InputLabel>Set Currency*</InputLabel>
@@ -620,11 +379,7 @@ const CreateUser = () => {
                       }
                       key={values.invoice_id}
                       invoiceInfo={{
-                        ...values,
-                        subtotal,
-                        taxRate,
-                        discountRate,
-                        total
+                        ...values
                       }}
                       items={values?.invoice_detail}
                       onAddNextInvoice={addNextInvoiceHandler}
@@ -640,4 +395,4 @@ const CreateUser = () => {
   );
 };
 
-export default CreateUser;
+export default EditUser;

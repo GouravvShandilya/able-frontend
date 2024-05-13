@@ -106,11 +106,12 @@ export function getcollectionList() {
 
       dispatch(invoice.actions.getLists(response.data));
     } catch (error) {
-
       dispatch(invoice.actions.hasError(error));
     }
   };
 }
+
+
 
 export function getcollectionInsert(NewLists) {
   return async () => {
@@ -156,8 +157,6 @@ export function getCollectionSingleList(collectionId) {
   };
 }
 
-
-
 export function getCustomerCollectionList() {
   return async () => {
     try {
@@ -165,7 +164,35 @@ export function getCustomerCollectionList() {
 
       dispatch(invoice.actions.getLists(response.data));
     } catch (error) {
+      dispatch(invoice.actions.hasError(error));
+    }
+  };
+}
 
+
+
+
+export function getEditReqList() {
+  return async () => {
+    try {
+      const response = await axios.get('/editRequest/getEditReqList');
+
+      console.log(response.data);
+      dispatch(invoice.actions.getLists(response.data.data));
+    } catch (error) {
+      dispatch(invoice.actions.hasError(error));
+    }
+  };
+}
+
+export function getEditReqListAdmin() {
+  return async () => {
+    try {
+      const response = await axios.get('/editRequest/getEditReqListAdmin');
+
+      console.log(response.data);
+      dispatch(invoice.actions.getLists(response.data.data));
+    } catch (error) {
       dispatch(invoice.actions.hasError(error));
     }
   };

@@ -26,7 +26,7 @@ const applications = {
   children: [
     {
       id: 'invoice',
-      title: <FormattedMessage id="invoice" />,
+      title: <FormattedMessage id="Deposits" />,
       url: '/user/apps/invoice/dashboard',
       type: 'collapse',
       icon: icons.invoice,
@@ -34,15 +34,21 @@ const applications = {
       children: [
         {
           id: 'create',
-          title: <FormattedMessage id="create" />,
+          title: <FormattedMessage id="Create Deposits" />,
           type: 'item',
           url: '/user/apps/invoice/create'
         },
         {
           id: 'list',
-          title: <FormattedMessage id="list" />,
+          title: <FormattedMessage id="Deposits List" />,
           type: 'item',
           url: '/user/apps/invoice/list'
+        },
+        {
+          id: 'edit request',
+          title: <FormattedMessage id="Deposits Edit Requests" />,
+          type: 'item',
+          url: '/user/apps/invoice/Editreqlist'
         }
       ]
     },
